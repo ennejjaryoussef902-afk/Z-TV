@@ -6,7 +6,8 @@
     <style>
         body { background: #000; color: #fff; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; flex-direction: column; }
         .logo { position: absolute; top: 30px; right: 40px; color: #ff0055; font-weight: bold; font-size: 28px; z-index: 100; }
-        video { width: 85%; border-radius: 12px; box-shadow: 0 0 40px rgba(255, 0, 85, 0.3); background: #111; }
+        .tv-container { width: 85%; aspect-ratio: 16/9; background: #111; border-radius: 12px; box-shadow: 0 0 40px rgba(255, 0, 85, 0.3); overflow: hidden; }
+        video { width: 100%; height: 100%; }
         #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; align-items: center; justify-content: center; z-index: 1000; cursor: pointer; }
         .btn-play { padding: 20px 40px; background: #ff0055; border: none; color: white; font-size: 20px; font-weight: bold; border-radius: 50px; cursor: pointer; }
         .info-bar { position: absolute; bottom: 30px; left: 30px; border-left: 5px solid #ff0055; padding-left: 15px; }
@@ -20,7 +21,9 @@
 
     <div class="logo">Z-TV STUDIOS</div>
 
-    <video id="tv-player" playsinline></video>
+    <div class="tv-container">
+        <video id="tv-player" playsinline></video>
+    </div>
 
     <div class="info-bar">
         <div style="font-size: 12px; color: #ff0055;">ORA IN ONDA</div>
@@ -28,30 +31,25 @@
     </div>
 
     <script>
-        // ID PULITO: Rimosso "/view?usp=drive_link"
-        const videoID = "1deQW5fWv2idsuvWtEyIQgRJaX-fO3-8X"; 
+        // ID estratto correttamente dal tuo link
+        const videoID = "1deQW5fWv2idsuvWtEyIQgRJaX-fO3-8X";
         const player = document.getElementById('tv-player');
 
         function startTV() {
             document.getElementById('overlay').style.display = 'none';
             
-            // Questo link ora sarà: https://drive.google.com/uc?id=1deQW5fWv2idsuvWtEyIQgRJaX-fO3-8X
-            const videoUrl = `https://drive.google.com/uc?id=${videoID}`;
+            // Usiamo il link "uc" che trasmette il file grezzo
+            const videoUrl = `https://drive.google.com/uc?id=${videoID}&export=download`;
             
             player.src = videoUrl;
             
+            // Calcolo del tempo per la "diretta"
             const now = new Date();
-            const startAt = ((now.getMinutes() * 60) + now.getSeconds()) % 60; 
+            const startAt = ((now.getMinutes() * 60) + now.getSeconds()) % 120; // 120 è un esempio di durata video
 
             player.onloadedmetadata = () => {
                 player.currentTime = startAt;
-                player.play();
-            };
-
-            // Se il video non parte (perché Google Drive a volte blocca i player HTML5),
-            // stampiamo un messaggio di aiuto in console
-            player.onerror = () => {
-                console.error("Errore di caricamento. Carica il file su GitHub per bypassare i blocchi locali!");
+                player.play().catch(e => console.error("Errore Autoplay:", e));
             };
         }
     </script>
