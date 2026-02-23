@@ -5,83 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Z-TV Studios | LIVE</title>
     <style>
-        body { 
-            background: #000; 
-            color: #fff; 
-            font-family: 'Segoe UI', Arial, sans-serif; 
-            margin: 0; 
-            overflow: hidden; 
-        }
-
-        /* Logo Z-TV */
-        .logo { 
-            position: absolute; 
-            top: 30px; 
-            right: 40px; 
-            color: #ff0055; 
-            font-weight: bold; 
-            font-size: 28px; 
-            z-index: 100; 
-            text-shadow: 2px 2px 10px rgba(0,0,0,0.8); 
-        }
+        body { background: #000; color: #fff; font-family: sans-serif; margin: 0; overflow: hidden; }
+        .logo { position: absolute; top: 30px; right: 40px; color: #ff0055; font-weight: bold; font-size: 28px; z-index: 100; }
         .logo span { color: white; font-weight: 300; }
-
-        /* Contenitore TV */
-        .tv-container { 
-            width: 100vw; 
-            height: 100vh; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            background: #050505; 
-        }
-
-        video { 
-            width: 85%; 
-            max-height: 80%; 
-            border-radius: 12px; 
-            box-shadow: 0 0 40px rgba(255, 0, 85, 0.2); 
-            background: #000;
-        }
-
-        /* Info Ora in Onda */
-        .info-bar { 
-            position: absolute; 
-            bottom: 30px; 
-            left: 30px; 
-            background: rgba(0,0,0,0.7); 
-            padding: 15px 25px; 
-            border-radius: 10px; 
-            border-left: 6px solid #ff0055; 
-            backdrop-filter: blur(10px); 
-            z-index: 90; 
-        }
-        .info-title { font-size: 22px; font-weight: bold; }
-
-        /* Banner Tra Poco */
-        #up-next { 
-            position: absolute; 
-            bottom: 30px; 
-            right: -450px; 
-            background: linear-gradient(90deg, #ff0055, #ff5500); 
-            padding: 15px 35px; 
-            border-radius: 10px 0 0 10px; 
-            transition: right 0.8s ease-out; 
-            z-index: 95; 
-        }
-        #up-next.show { right: 0; }
-
-        /* Schermata iniziale per attivare audio/video */
-        #overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; display: flex; align-items: center;
-            justify-content: center; z-index: 1000; cursor: pointer;
-        }
-        .btn-play {
-            padding: 20px 40px; background: #ff0055; border: none;
-            color: white; font-size: 20px; font-weight: bold;
-            border-radius: 50px; box-shadow: 0 0 20px #ff0055;
-        }
+        .tv-container { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; background: #050505; }
+        video { width: 85%; max-height: 80%; border-radius: 12px; box-shadow: 0 0 40px rgba(255, 0, 85, 0.2); background: #000; }
+        .info-bar { position: absolute; bottom: 30px; left: 30px; background: rgba(0,0,0,0.7); padding: 15px 25px; border-radius: 10px; border-left: 6px solid #ff0055; backdrop-filter: blur(10px); z-index: 90; }
+        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; align-items: center; justify-content: center; z-index: 1000; cursor: pointer; }
+        .btn-play { padding: 20px 40px; background: #ff0055; border: none; color: white; font-size: 20px; font-weight: bold; border-radius: 50px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -93,19 +24,14 @@
     <div class="logo">Z-TV <span>STUDIOS</span></div>
 
     <div class="tv-container">
-        <video id="tv-player" playsinline>
-            <source src="" type="video/mp4">
-        </video>
+        <div id="player-wrapper" style="width:100%; display:flex; justify-content:center;">
+             <video id="tv-player" playsinline preload="auto"></video>
+        </div>
     </div>
 
     <div class="info-bar">
         <div style="font-size: 11px; color: #ff0055; font-weight: bold;">ORA IN ONDA</div>
-        <div id="current-title" class="info-title">...</div>
-    </div>
-
-    <div id="up-next">
-        <div style="font-size: 12px; font-weight: bold;">Tra poco</div>
-        <div id="next-title" style="font-size: 20px; font-weight: bold;">...</div>
+        <div id="current-title" style="font-size: 22px; font-weight: bold;">...</div>
     </div>
 
     <script>
@@ -115,7 +41,6 @@
                 titolo: "Video di Prova Z-TV", 
                 durata: 60 
             }
-            // Aggiungi qui altri video di Drive seguendo lo stesso stile
         ];
 
         const player = document.getElementById('tv-player');
@@ -124,7 +49,6 @@
         function startTV() {
             overlay.style.display = 'none';
             updateTV();
-            // Ripete il controllo ogni secondo
             setInterval(updateTV, 1000);
         }
 
@@ -146,26 +70,28 @@
             }
 
             const currentVideo = schedule[currentIdx];
-            const nextVideo = schedule[(currentIdx + 1) % schedule.length];
             const startAt = Math.floor(currentCycleTime - elapsedTime);
-            const remaining = currentVideo.durata - startAt;
 
-            // Aggiorna titoli
             document.getElementById('current-title').innerText = currentVideo.titolo;
-            document.getElementById('next-title').innerText = nextVideo.titolo;
 
-            // Banner Tra Poco (mostra negli ultimi 15 secondi)
-            if (remaining <= 15) document.getElementById('up-next').classList.add('show');
-            else document.getElementById('up-next').classList.remove('show');
-
-            // Cambio sorgente video
-            const driveUrl = `https://drive.google.com/uc?export=download&id=${currentVideo.id}`;
+            // --- NUOVO FORMATO LINK ---
+            // Usiamo 'view' invece di 'export=download' per evitare l'errore del token
+            const streamUrl = `https://www.googleapis.com/drive/v3/files/${currentVideo.id}?alt=media&key=IL_TUO_API_KEY`; 
+            // NOTA: Se non vuoi usare una API Key, il link vecchio corretto è questo sotto:
+            const standardUrl = `https://docs.google.com/get_video_info?docid=${currentVideo.id}`;
             
+            // Proviamo il link più stabile per Drive:
+            const finalUrl = `https://drive.google.com/uc?id=${currentVideo.id}`;
+
             if (player.getAttribute('data-active-id') !== currentVideo.id) {
                 player.setAttribute('data-active-id', currentVideo.id);
-                player.src = driveUrl;
-                player.currentTime = startAt;
-                player.play().catch(e => console.log("Errore riproduzione"));
+                player.src = finalUrl;
+                player.load(); // Forza il ricaricamento del video
+                
+                player.oncanplay = () => {
+                    player.currentTime = startAt;
+                    player.play().catch(e => console.log("Errore riproduzione:", e));
+                };
             }
         }
     </script>
