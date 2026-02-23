@@ -4,77 +4,18 @@
     <meta charset="UTF-8">
     <title>Z-TV Studios | LIVE</title>
     <style>
-        /* Il tuo stile originale con correzioni */
-        body {
-            background: #000;
-            color: #fff;
-            font-family: sans-serif;
-            margin: 0;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            flex-direction: column;
+        body { 
+            background: #000; color: #fff; font-family: sans-serif; 
+            margin: 0; overflow: hidden; display: flex; 
+            align-items: center; justify-content: center; 
+            height: 100vh; flex-direction: column; 
         }
-
-        .tv-container {
-            width: 85%;
-            aspect-ratio: 16/9;
-            background: #111;
-            border-radius: 12px;
-            box-shadow: 0 0 40px rgba(255, 0, 85, 0.3);
-            overflow: hidden;
-            position: relative;
-        }
-
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: contain; /* Mantiene le proporzioni originali */
-        }
-
-        .logo {
-            position: absolute;
-            top: 30px;
-            right: 40px;
-            color: #ff0055;
-            font-weight: bold;
-            font-size: 28px;
-            z-index: 100;
-        }
-
-        .info-bar {
-            position: absolute;
-            bottom: 30px;
-            left: 30px;
-            border-left: 5px solid #ff0055;
-            padding-left: 15px;
-            z-index: 90;
-        }
-
-        /* Overlay per sbloccare l'audio */
-        #overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            cursor: pointer;
-        }
-
-        .btn-play {
-            padding: 20px 40px;
-            background: #ff0055;
-            border: none;
-            color: white;
-            font-size: 20px;
-            font-weight: bold;
-            border-radius: 50px;
-            box-shadow: 0 0 20px rgba(255, 0, 85, 0.5);
-        }
+        .logo { position: absolute; top: 30px; right: 40px; color: #ff0055; font-weight: bold; font-size: 28px; z-index: 100; }
+        .tv-container { width: 85%; aspect-ratio: 16/9; background: #111; border-radius: 12px; box-shadow: 0 0 40px rgba(255, 0, 85, 0.3); overflow: hidden; }
+        video { width: 100%; height: 100%; object-fit: contain; }
+        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; align-items: center; justify-content: center; z-index: 1000; cursor: pointer; }
+        .btn-play { padding: 20px 40px; background: #ff0055; border: none; color: white; font-size: 20px; font-weight: bold; border-radius: 50px; cursor: pointer; }
+        .info-bar { position: absolute; bottom: 30px; left: 30px; border-left: 5px solid #ff0055; padding-left: 15px; }
     </style>
 </head>
 <body>
@@ -91,34 +32,26 @@
 
     <div class="info-bar">
         <div style="font-size: 12px; color: #ff0055;">ORA IN ONDA</div>
-        <div id="current-title" style="font-size: 24px; font-weight: bold;">Video di Prova</div>
+        <div id="current-title" style="font-size: 24px; font-weight: bold;">Programma Live</div>
     </div>
 
     <script>
-        // ID PULITO del tuo video
-        const videoID = "1deQW5fWv2idsuvWtEyIQgRJaX-fO3-8X";
         const player = document.getElementById('tv-player');
+        // Scrivi qui il nome esatto del file che carichi su GitHub
+        const videoFileName = "video1.mp4"; 
 
         function startTV() {
             document.getElementById('overlay').style.display = 'none';
             
-            // Link diretto per lo streaming da Drive
-            const videoUrl = `https://drive.google.com/uc?id=${videoID}`;
+            player.src = videoFileName;
             
-            player.src = videoUrl;
-            
-            // Sincronizzazione basata sull'orario (es. ciclo di 10 minuti)
+            // Sincronizzazione: calcola il secondo attuale (es. ciclo di 5 minuti = 300 sec)
             const now = new Date();
-            const startAt = ((now.getMinutes() * 60) + now.getSeconds()) % 600; 
+            const startAt = ((now.getMinutes() * 60) + now.getSeconds()) % 300; 
 
             player.onloadedmetadata = () => {
                 player.currentTime = startAt;
                 player.play();
-            };
-
-            // Se fallisce, logghiamo l'errore per il debug
-            player.onerror = () => {
-                console.error("Errore: Google Drive ha negato l'accesso. Verifica i permessi del file!");
             };
         }
     </script>
