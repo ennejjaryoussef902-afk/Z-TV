@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Z-TV Studios | LIVE</title>
+    <style>
+        /* STILE BASE - TIPO BOING */
+        body { 
+            background: #000; 
+            color: #fff; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            margin: 0; 
+            padding: 0;
+            overflow: hidden; 
+        }
+
+        /* LOGO FISSO IN ALTO */
+        .logo { 
+            position: absolute; 
+            top: 30px; 
+            right: 40px; 
+            color: #ff0055; 
+            font-weight: bold; 
+            font-size: 28px; 
+            z-index: 100; 
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.8); 
+            letter-spacing: 1px; 
+            text-transform: uppercase;
+        }
+        .logo span { color: white; font-weight: 300; }
+
+        /* CONTENITORE PLAYER */
+        .tv-container { 
+            width: 100vw; 
+            height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            background: radial-gradient(circle, #111 0%, #000 100%); 
+        }
+
+        #video-viewport {
+            width: 85%;
+            aspect-ratio: 16/9;
+            max-height: 80vh;
+            background: #000;
+            border-radius: 12px;
+            box-shadow: 0 0 50px rgba(255, 0, 85, 0.1);
+            overflow: hidden;
+            position: relative;
+        }
+
+        iframe, video { 
+            width: 100%; 
+            height: 100%; 
+            border: none; 
+        }
+
+        /* INFO BAR (ORA IN ONDA) */
+        .info-bar { 
+            position: absolute; 
+            bottom: 30px; 
+            left: 30px; 
+            background: rgba(0,0,0,0.7); 
+            padding: 15px 25px; 
+            border-radius: 10px; 
+            border-left: 6px solid #ff0055; 
+            backdrop-filter: blur(10px); 
+            z-index: 90; 
+        }
+        .info-label { font-size: 11px; color: #ff0055; font-weight: bold; letter-spacing: 1px; margin-bottom: 4px; }
+        .info-title { font-size: 22px; font-weight: bold; }
+
+        /* BANNER "TRA POCO" */
+        #up-next { 
+            position: absolute; 
+            bottom: 30px; 
+            right: -450px; 
+            background: linear-gradient(90deg, #ff0055, #ff5500); 
+            padding: 15px 35px; 
+            border-radius: 10px 0 0 10px; 
+            transition: right 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            z-index: 95; 
+            box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+        }
+        #up-next.show { right: 0; }
+        .up-next-label { font-size: 12px; font-weight: bold; text-transform: uppercase; opacity: 0.9; }
+        .up-next-title { font-size: 20px; font-weight: bold; }
+
+        /* OVERLAY PER ATTIVARE AUDIO */
+        #unmute-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); display: flex; align-items: center;
+            justify-content: center; z-index: 1000; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="unmute-overlay" onclick="startAudio()">
+        <div style="text-align: center;">
+            <div style="font-size: 50px;">🔊</div>
+            <p>CLICCA PER SINTONIZZARE Z-TV</p>
+        </div>
+    </div>
+
+    <div class="logo">Z-TV <span>STUDIOS</span></div>
+
+    <div class="tv-container">
+        <div id="video-viewport">
+            </div>
+    </div>
+
+    <div class="info-bar">
+        <div class="info-label">ORA IN ONDA</div>
+        <div id="current-title" class="info-title">Sintonizzazione...</div>
+    </div>
+
+    <div id="up-next">
+        <div class="up-next-label">Tra poco</div>
+        <div id="next-title" class="up-next-title">...</div>
+    </div>
+
+    <script>
+        // --- IL TUO PALINSESTO ---
+        const schedule = [
+            { 
+                id: "1deQW5fWv2idsuvWtEyIQgRJaX-fO3-8X", 
+                titolo: "Video di Prova Z-TV", 
+                durata: 60, // Secondi (cambia in base alla durata reale)
+                tipo: "drive" 
+            },
+            { 
+                id: "gdLhQAbyLwQ", 
+                titolo: "Speedrun FL Studio", 
+                durata: 53, 
+                tipo: "youtube" 
+            }
+        ];
+
+        let isMuted = true;
+
+        function startAudio() {
+            document.getElementById('unmute-overlay').style.display = 'none';
+            isMuted = false;
+            updateTV();
+        }
+
+        function updateTV() {
+            const now = new Date();
+            let totalSecondsToday = (now.getHours() * 3600) + (now.getMinutes() * 60) + now.getSeconds();
+            let loopDuration = schedule.reduce((a, b) => a + b.durata, 0);
+            let currentCycleTime = totalSecondsToday % loopDuration;
+
+            let elapsedTime = 0;
+            let currentIdx = 0;
+
+            for (let i = 0; i < schedule.length; i++) {
+                if (currentCycleTime < elapsedTime + schedule[i].durata) {
+                    currentIdx = i;
+                    break;
+                }
+                elapsedTime += schedule[i].durata;
+            }
+
+            const currentVideo = schedule[currentIdx];
+            const nextVideo = schedule[(currentIdx + 1) % schedule.length];
+            const startAt = Math.floor(currentCycleTime - elapsedTime);
+            const remainingTime = currentVideo.durata - startAt;
+
+            renderPlayer(currentVideo, startAt, remainingTime, nextVideo.titolo);
+        }
+
+        function renderPlayer(video, startAt, remaining, nextTitle) {
+            const viewport = document.getElementById('video-viewport');
+            const titleDisplay = document.getElementById('current-title');
+            const nextTitleDisplay = document.getElementById('next-title');
+            const banner = document.getElementById('up-next');
+
+            titleDisplay.innerText = video.titolo;
+            nextTitleDisplay.innerText = nextTitle;
+
+            // Mostra/Nascondi banner "Tra Poco"
+            if (remaining <= 20) banner.classList.add('show');
+            else banner.classList.remove('show');
+
+            const videoIdTag = `video-${video.id}`;
+            if (viewport.getAttribute('data-active-id') !== videoIdTag) {
+                viewport.setAttribute('data-active-id', videoIdTag);
+                
+                if (video.tipo === "youtube") {
+                    viewport.innerHTML = `<iframe src="https://www.youtube.com/embed/${video.id}?autoplay=1&mute=${isMuted ? 1 : 0}&start=${startAt}&controls=0&rel=0" allow="autoplay"></iframe>`;
+                } else {
+                    const driveUrl = `https://drive.google.com/uc?export=download&id=${video.id}#t=${startAt}`;
+                    viewport.innerHTML = `<video id="html-player" autoplay ${isMuted ? 'muted' : ''} src="${driveUrl}"></video>`;
+                    if(!isMuted) document.getElementById('html-player').play();
+                }
+            }
+        }
+
+        // Aggiorna ogni secondo
+        setInterval(updateTV, 1000);
+        updateTV();
+    </script>
+</body>
+</html>
