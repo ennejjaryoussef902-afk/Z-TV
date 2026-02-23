@@ -4,56 +4,55 @@
     <meta charset="UTF-8">
     <title>Z-TV Studios | LIVE</title>
     <style>
-        body { background: #000; color: #fff; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        body { background: #000; color: #fff; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; flex-direction: column; }
         .logo { position: absolute; top: 30px; right: 40px; color: #ff0055; font-weight: bold; font-size: 28px; z-index: 100; }
-        video { width: 85%; border-radius: 12px; box-shadow: 0 0 40px rgba(255, 0, 85, 0.2); }
+        video { width: 85%; border-radius: 12px; box-shadow: 0 0 40px rgba(255, 0, 85, 0.3); background: #111; }
         #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; align-items: center; justify-content: center; z-index: 1000; cursor: pointer; }
-        .btn-play { padding: 20px 40px; background: #ff0055; border: none; color: white; font-size: 20px; font-weight: bold; border-radius: 50px; }
+        .btn-play { padding: 20px 40px; background: #ff0055; border: none; color: white; font-size: 20px; font-weight: bold; border-radius: 50px; cursor: pointer; }
+        .info-bar { position: absolute; bottom: 30px; left: 30px; border-left: 5px solid #ff0055; padding-left: 15px; }
     </style>
 </head>
 <body>
 
     <div id="overlay" onclick="startTV()">
-        <button class="btn-play">SINTONIZZA Z-TV STUDIOS</button>
+        <button class="btn-play">ACCENDI Z-TV STUDIOS</button>
     </div>
 
     <div class="logo">Z-TV STUDIOS</div>
 
     <video id="tv-player" playsinline></video>
 
-    <script>
-        const schedule = [
-            { id: "1deQW5fWv2idsuvWtEyIQgRJaX-fO3-8X", titolo: "Video di Prova", durata: 60 }
-        ];
+    <div class="info-bar">
+        <div style="font-size: 12px; color: #ff0055;">ORA IN ONDA</div>
+        <div id="current-title" style="font-size: 24px; font-weight: bold;">Video di Prova</div>
+    </div>
 
+    <script>
+        // ID PULITO: Rimosso "/view?usp=drive_link"
+        const videoID = "1deQW5fWv2idsuvWtEyIQgRJaX-fO3-8X"; 
         const player = document.getElementById('tv-player');
 
         function startTV() {
             document.getElementById('overlay').style.display = 'none';
-            updateTV();
-            setInterval(updateTV, 1000);
-        }
-
-        function updateTV() {
+            
+            // Questo link ora sarà: https://drive.google.com/uc?id=1deQW5fWv2idsuvWtEyIQgRJaX-fO3-8X
+            const videoUrl = `https://drive.google.com/uc?id=${videoID}`;
+            
+            player.src = videoUrl;
+            
             const now = new Date();
-            let totalSecondsToday = (now.getHours() * 3600) + (now.getMinutes() * 60) + now.getSeconds();
-            let loopDuration = schedule.reduce((a, b) => a + b.durata, 0);
-            let currentSeconds = totalSecondsToday % loopDuration;
+            const startAt = ((now.getMinutes() * 60) + now.getSeconds()) % 60; 
 
-            const video = schedule[0]; // Per ora usiamo il tuo video di prova
-            const startAt = currentSeconds % video.durata;
+            player.onloadedmetadata = () => {
+                player.currentTime = startAt;
+                player.play();
+            };
 
-            // TRUCCO: Usiamo l'ID diretto senza 'export=download' che causa il SyntaxError
-            const cleanUrl = `https://drive.google.com/uc?id=${video.id}`;
-
-            if (player.getAttribute('data-id') !== video.id) {
-                player.setAttribute('data-id', video.id);
-                player.src = cleanUrl;
-                player.onloadedmetadata = () => {
-                    player.currentTime = startAt;
-                    player.play().catch(err => console.log("Errore:", err));
-                };
-            }
+            // Se il video non parte (perché Google Drive a volte blocca i player HTML5),
+            // stampiamo un messaggio di aiuto in console
+            player.onerror = () => {
+                console.error("Errore di caricamento. Carica il file su GitHub per bypassare i blocchi locali!");
+            };
         }
     </script>
 </body>
